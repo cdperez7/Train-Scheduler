@@ -1,0 +1,34 @@
+.jumbotron{
+    background-image: url("../images/jumboimage.jpg");
+    background-size: cover;
+    color: yellow;
+}
+
+.panel{
+    background-color: yellow;
+}
+
+p{
+    font-size: 1.5em;
+}
+
+.border {
+    border-color: yellow;
+}
+
+body{
+    background-color: black;
+    color: white;
+}
+
+.panel{
+    color: black;
+}
+
+.table{
+    color: white;
+}
+
+.btn{
+    background-color: yellow;
+}
