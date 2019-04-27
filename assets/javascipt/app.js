@@ -1,3 +1,6 @@
+$(document).ready(function(){
+
+//personal firebase information
 var config = {
     apiKey: "AIzaSyDNfJGNlPGbxxHG14s3pEs6RTSG4nGJnxQ",
     authDomain: "train-scheduler-homework-7.firebaseapp.com",
@@ -5,57 +8,68 @@ var config = {
     projectId: "train-scheduler-homework-7",
     storageBucket: "train-scheduler-homework-7.appspot.com",
     messagingSenderId: "472839829250"
-  };
-
+};
+//setting up link with firebase
 firebase.initializeApp(config);
 var database = firebase.database();
 
-$("#add-train").on("click", function(event) {
+//Global variables to be used
+var name;
+var destination;
+var firstTrain;
+var frequency = 0;
+
+//Data to be entered when user adds a train
+$("#add-train").on("click", function() {
     event.preventDefault();
 
-    //capture data
-    var empTrainName = $("#train-time").val().trim();
-    var empDestination = $("#destination").val().trim();
-    var empFrequency = $("#frequency").val().trim();
-    var empFirstTrainTime = $("#first-train-time").val().trim();
-    console.log(empTrainName);
-    console.log(empDestination);
-    console.log(empFrequency);
-    console.log(empFirstTrainTime);
+    //capture this data
+    name = $("#train-name").val().trim();
+    destination = $("#destination").val().trim();
+    firstTrain = $("#first-train").val().trim();
+    frequency = $("#frequency").val().trim();
+
 
     //creating data structure within FireBase
     var newTrain = {
-        trainName: empTrainName,
-        Destination: empDestination,
-        Frequency: empFrequency,
-        FirstTrainTime: empFirstTrainTime
+        name: name,
+        destination: destination,
+        firstTrain: firstTrain,
+        frequency: frequency,
+        dateAdded: firebase.database.ServerValue.TIMESTAMP
     };
     //push new data to FireBase
     database.ref().push(newTrain);
 
-    $("#train-time").val("");
-    $("#destination").val("");
-    $("#frequency").val("");
-    $("#first-train-time").val("");
+    // $("#train-name").val("");
+    // $("#destination").val("");
+    // $("#first-train").val("");
+    // $("#frequency").val("");
 });
 
-database.ref().on("child_added", function(data) {
-    var empTrainName = data.val().trainName;
-    var empDestination = data.val().Destination;
-    var empFrequency = data.val().Frequency;
-    var empFirstTrainTime = data.val().FirstTrainTime;
+database.ref().on("child_added", function (data) {
+    var nextTrain;
+    var minAway;
 
-    var momentInst = moment('MMMM Do YYYY, h:mm:ss a');
-    console.log(momentInst);
-    // var minutesAway = momentInst.diff(moment(), 'months') * -1;
-    // var nextMinutesAway = empMonths * empRate;
+    var firstTrainNew = moment(data.val().firstTrain, "hh:mm").subtract(1, "years");
+    console.log(firstTrainNew);
+    var diffTime = moment().diff(moment(firstTrainNew), "minutes");
+    console.log(diffTime);
+    var remainder = diffTime % data.val().frequency;
+    console.log(remainder);
+    var minAway = data.val().frequency - remainder;
+    console.log(minAway);
+    var nextTrain = moment().add(minAway, "minutes");
+    console.log(nextTrain);
+    nextTrain = moment(nextTrain).format("hh:mm");
 
-    var trainCell = $("<td>").text(empTrainName);
-    var destinationCell = $("<td>").text(empDestination);
-    // var frequencyCell = $("<td>").text(momentInst.format('MM/DD/YYYY'));
-    var frequencyCell = $("<td>").text(empFrequency);
-    var firstTrainTimeCell = $("<td>").text(empFirstTrainTime);
+    $("#add-row").append("<tr><td>" + data.val().name + 
+    "</td><td>" + data.val().destination +
+    "</td><td>" + data.val().frequency +
+    "</td><td>" + data.val().nextTrain +
+    "</td><td>" + data.val().minAway + "</td></tr>");
 
-    var newRow = $("<tr>").append(trainCell, destinationCell, frequencyCell, firstTrainTimeCell);
-    $("tbody").append(newRow);
+}, function (errorObject){
+    console.log("Errors handled: " + errorObject.code);
+});
 });
